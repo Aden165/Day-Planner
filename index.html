@@ -545,8 +545,23 @@
     <p>Describe your day in plain words. The AI will read it and build your perfect schedule.</p>
   </div>
 
+  <!-- API KEY PAGE -->
+  <div id="page-apikey" style="width:100%;max-width:480px;animation:fadeUp 0.5s ease both;">
+    <div class="input-card">
+      <div class="input-label">// step 1 — enter api key</div>
+      <p style="color:var(--text2);font-size:14px;line-height:1.6;margin-bottom:16px;">
+        This app uses Anthropic's Claude AI. Paste your API key below to get started. It's stored only in your browser session and never sent anywhere except Anthropic.
+      </p>
+      <input type="password" id="apiKeyInput" placeholder="sk-ant-api03-..." style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--mono);font-size:13px;padding:14px 16px;outline:none;transition:border-color 0.2s;letter-spacing:1px;" oninput="this.style.borderColor='var(--accent)'" />
+      <div class="hint-box" style="margin-top:12px;">
+        <strong>Where to get a key?</strong> Go to <a href="https://console.anthropic.com/keys" target="_blank" style="color:var(--accent2);">console.anthropic.com/keys</a> → create a new key → copy &amp; paste it here.
+      </div>
+      <button class="btn-analyze" style="margin-top:16px;" onclick="submitApiKey()">✦ Continue to Planner</button>
+    </div>
+  </div>
+
   <!-- LANDING PAGE -->
-  <div id="page-landing">
+  <div id="page-landing" style="display:none;">
     <div class="input-card">
       <div class="input-label">// describe your day</div>
       <textarea id="userInput" placeholder="e.g. It's 9am. From 10am–12pm I'll study Math. Then lunch and rest till 2pm. From 2pm–5pm I'll study Physics. Break till 7pm. Then 7pm–9pm study Chemistry. Then eat, game till 11pm. Sleep at 11pm."></textarea>
@@ -619,6 +634,18 @@ let tasks = [];
 let editingIndex = null;
 let notifTimers = [];
 let clockInterval = null;
+let userApiKey = '';
+
+function submitApiKey() {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  if (!key.startsWith('sk-ant-')) {
+    showToast('⚠️', 'Invalid Key', 'Please enter a valid Anthropic API key (starts with sk-ant-).', false);
+    return;
+  }
+  userApiKey = key;
+  document.getElementById('page-apikey').style.display = 'none';
+  document.getElementById('page-landing').style.display = 'block';
+}
 
 // ── ANALYZE ──
 async function analyzePlan() {
@@ -653,7 +680,7 @@ Return ONLY the JSON array.`;
   try {
     const res = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "x-api-key": userApiKey, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
       body: JSON.stringify({
         model: "claude-sonnet-4-20250514",
         max_tokens: 1000,

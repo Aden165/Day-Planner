@@ -3,539 +3,126 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Day Planner</title>
+<title>Day Planner AI</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
   :root {
-    --bg: #0d0d0f;
-    --surface: #16161a;
-    --surface2: #1e1e24;
-    --surface3: #26262f;
-    --border: #2e2e38;
-    --accent: #7c6af7;
-    --accent2: #a78bfa;
-    --accent-glow: rgba(124,106,247,0.18);
-    --green: #22d3a0;
-    --green-bg: rgba(34,211,160,0.08);
-    --red: #f87171;
-    --red-bg: rgba(248,113,113,0.08);
-    --yellow: #fbbf24;
-    --yellow-bg: rgba(251,191,36,0.08);
-    --text: #e8e8f0;
-    --text2: #9898b0;
-    --text3: #55556a;
-    --mono: 'Space Mono', monospace;
-    --sans: 'DM Sans', sans-serif;
-    --radius: 12px;
-    --radius-sm: 8px;
+    --bg: #0d0d0f; --surface: #16161a; --surface2: #1e1e24; --surface3: #26262f;
+    --border: #2e2e38; --accent: #7c6af7; --accent2: #a78bfa;
+    --accent-glow: rgba(124,106,247,0.18); --green: #22d3a0;
+    --green-bg: rgba(34,211,160,0.08); --red: #f87171; --red-bg: rgba(248,113,113,0.08);
+    --yellow: #fbbf24; --yellow-bg: rgba(251,191,36,0.08);
+    --text: #e8e8f0; --text2: #9898b0; --text3: #55556a;
+    --mono: 'Space Mono', monospace; --sans: 'DM Sans', sans-serif;
+    --radius: 12px; --radius-sm: 8px;
   }
-
-  html, body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--sans);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  /* ── BACKGROUND GRID ── */
+  html, body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; overflow-x: hidden; }
   body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(124,106,247,0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(124,106,247,0.04) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-    z-index: 0;
+    content: ''; position: fixed; inset: 0;
+    background-image: linear-gradient(rgba(124,106,247,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(124,106,247,0.04) 1px, transparent 1px);
+    background-size: 40px 40px; pointer-events: none; z-index: 0;
   }
-
   body::after {
-    content: '';
-    position: fixed;
-    top: -200px; left: 50%;
-    transform: translateX(-50%);
+    content: ''; position: fixed; top: -200px; left: 50%; transform: translateX(-50%);
     width: 600px; height: 400px;
     background: radial-gradient(ellipse, rgba(124,106,247,0.12) 0%, transparent 70%);
-    pointer-events: none;
-    z-index: 0;
+    pointer-events: none; z-index: 0;
   }
-
-  .app {
-    position: relative;
-    z-index: 1;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 40px 20px 80px;
+  .app { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 40px 20px 80px; }
+  .header { text-align: center; margin-bottom: 48px; animation: fadeDown 0.6s ease both; }
+  .header-label { font-family: var(--mono); font-size: 11px; letter-spacing: 3px; color: var(--accent); text-transform: uppercase; margin-bottom: 14px; }
+  .header h1 { font-size: clamp(26px, 5vw, 42px); font-weight: 600; line-height: 1.2; letter-spacing: -0.5px; }
+  .header h1 span { color: var(--accent2); }
+  .header p { margin-top: 12px; color: var(--text2); font-size: 15px; font-weight: 300; max-width: 440px; margin-inline: auto; line-height: 1.6; }
+  .page { width: 100%; max-width: 620px; animation: fadeUp 0.5s ease both; }
+  .input-card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 28px; position: relative; overflow: hidden; }
+  .input-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+  .input-label { font-family: var(--mono); font-size: 11px; color: var(--text3); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
+  input[type="password"], input[type="text"], input[type="time"], textarea, select {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius); color: var(--text); font-family: var(--sans);
+    font-size: 14px; padding: 12px 16px; outline: none; transition: border-color 0.2s;
   }
-
-  /* ── HEADER ── */
-  .header {
-    text-align: center;
-    margin-bottom: 48px;
-    animation: fadeDown 0.6s ease both;
-  }
-  .header-label {
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 3px;
-    color: var(--accent);
-    text-transform: uppercase;
-    margin-bottom: 14px;
-  }
-  .header h1 {
-    font-size: clamp(26px, 5vw, 42px);
-    font-weight: 600;
-    line-height: 1.2;
-    color: var(--text);
-    letter-spacing: -0.5px;
-  }
-  .header h1 span {
-    color: var(--accent2);
-  }
-  .header p {
-    margin-top: 12px;
-    color: var(--text2);
-    font-size: 15px;
-    font-weight: 300;
-    max-width: 440px;
-    margin-inline: auto;
-    line-height: 1.6;
-  }
-
-  /* ── LANDING PAGE ── */
-  #page-landing { width: 100%; max-width: 680px; animation: fadeUp 0.5s ease both; }
-
-  .input-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 18px;
-    padding: 28px;
-    position: relative;
-    overflow: hidden;
-  }
-  .input-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, var(--accent), var(--accent2));
-  }
-
-  .input-label {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--text3);
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    margin-bottom: 10px;
-  }
-
-  textarea {
-    width: 100%;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    color: var(--text);
-    font-family: var(--sans);
-    font-size: 15px;
-    font-weight: 300;
-    line-height: 1.7;
-    padding: 16px 18px;
-    resize: vertical;
-    min-height: 200px;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  textarea::placeholder { color: var(--text3); }
-  textarea:focus { border-color: var(--accent); }
-
-  .hint-box {
-    margin-top: 14px;
-    background: var(--accent-glow);
-    border: 1px solid rgba(124,106,247,0.2);
-    border-radius: var(--radius-sm);
-    padding: 12px 16px;
-    font-size: 13px;
-    color: var(--text2);
-    line-height: 1.6;
-  }
+  input[type="password"] { font-family: var(--mono); font-size: 13px; letter-spacing: 1px; }
+  input:focus, textarea:focus, select:focus { border-color: var(--accent); }
+  textarea { resize: vertical; min-height: 180px; font-size: 15px; font-weight: 300; line-height: 1.7; }
+  textarea::placeholder, input::placeholder { color: var(--text3); }
+  .hint-box { margin-top: 14px; background: var(--accent-glow); border: 1px solid rgba(124,106,247,0.2); border-radius: var(--radius-sm); padding: 12px 16px; font-size: 13px; color: var(--text2); line-height: 1.6; }
   .hint-box strong { color: var(--accent2); font-weight: 500; }
-
-  .btn-analyze {
-    margin-top: 20px;
-    width: 100%;
-    padding: 16px;
-    background: var(--accent);
-    color: #fff;
-    font-family: var(--sans);
-    font-size: 15px;
-    font-weight: 600;
-    border: none;
-    border-radius: var(--radius);
-    cursor: pointer;
-    letter-spacing: 0.3px;
-    transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
-    position: relative;
-    overflow: hidden;
-  }
-  .btn-analyze:hover { background: #6a59e0; box-shadow: 0 0 24px rgba(124,106,247,0.35); }
-  .btn-analyze:active { transform: scale(0.99); }
-  .btn-analyze:disabled { opacity: 0.5; cursor: not-allowed; }
-
-  /* ── LOADING ── */
-  #page-loading {
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-    text-align: center;
-    animation: fadeUp 0.4s ease both;
-  }
-  .spinner {
-    width: 48px; height: 48px;
-    border: 3px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-  .loading-text {
-    color: var(--text2);
-    font-size: 15px;
-    font-family: var(--mono);
-  }
-  .loading-dots::after {
-    content: '';
-    animation: dots 1.4s infinite;
-  }
-  @keyframes dots { 0%{content:'.'} 33%{content:'..'} 66%{content:'...'} }
-
-  /* ── SCHEDULE PAGE ── */
-  #page-schedule {
-    display: none;
-    width: 100%;
-    max-width: 700px;
-    animation: fadeUp 0.5s ease both;
-  }
-
-  .schedule-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 24px;
-    flex-wrap: wrap;
-    gap: 12px;
-  }
-  .schedule-title {
-    font-size: 22px;
-    font-weight: 600;
-    color: var(--text);
-  }
-  .schedule-date {
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--text3);
-    letter-spacing: 1px;
-  }
-  .btn-reset {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    color: var(--text2);
-    font-family: var(--sans);
-    font-size: 13px;
-    padding: 8px 16px;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    transition: all 0.2s;
-  }
+  .hint-box a { color: var(--accent2); }
+  .btn { margin-top: 18px; width: 100%; padding: 16px; background: var(--accent); color: #fff; font-family: var(--sans); font-size: 15px; font-weight: 600; border: none; border-radius: var(--radius); cursor: pointer; transition: background 0.2s, box-shadow 0.2s; }
+  .btn:hover { background: #6a59e0; box-shadow: 0 0 24px rgba(124,106,247,0.35); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  #page-loading { display: none; flex-direction: column; align-items: center; gap: 20px; text-align: center; }
+  .spinner { width: 48px; height: 48px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  .loading-text { color: var(--text2); font-size: 15px; font-family: var(--mono); }
+  .loading-dots::after { content: ''; animation: dots 1.4s infinite; }
+  #page-schedule { display: none; width: 100%; max-width: 700px; animation: fadeUp 0.5s ease both; }
+  .schedule-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+  .schedule-title { font-size: 22px; font-weight: 600; }
+  .schedule-date { font-family: var(--mono); font-size: 12px; color: var(--text3); letter-spacing: 1px; }
+  .btn-reset { background: var(--surface2); border: 1px solid var(--border); color: var(--text2); font-family: var(--sans); font-size: 13px; padding: 8px 16px; border-radius: var(--radius-sm); cursor: pointer; transition: all 0.2s; }
   .btn-reset:hover { border-color: var(--accent); color: var(--accent2); }
-
-  .progress-bar-wrap {
-    background: var(--surface2);
-    border-radius: 99px;
-    height: 6px;
-    margin-bottom: 24px;
-    overflow: hidden;
-  }
-  .progress-bar-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--accent), var(--green));
-    border-radius: 99px;
-    transition: width 0.5s ease;
-    width: 0%;
-  }
-  .progress-label {
-    font-size: 12px;
-    color: var(--text3);
-    font-family: var(--mono);
-    margin-bottom: 6px;
-  }
-
-  /* ── TASK CARD ── */
+  .progress-bar-wrap { background: var(--surface2); border-radius: 99px; height: 6px; margin-bottom: 24px; overflow: hidden; }
+  .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--green)); border-radius: 99px; transition: width 0.5s ease; width: 0%; }
+  .progress-label { font-size: 12px; color: var(--text3); font-family: var(--mono); margin-bottom: 6px; }
   .task-list { display: flex; flex-direction: column; gap: 10px; }
-
-  .task-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 16px 18px;
-    display: flex;
-    align-items: flex-start;
-    gap: 14px;
-    transition: border-color 0.2s, opacity 0.3s;
-    position: relative;
-    overflow: hidden;
-  }
+  .task-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; display: flex; align-items: flex-start; gap: 14px; transition: border-color 0.2s, opacity 0.3s; position: relative; overflow: hidden; }
   .task-card.study { border-left: 3px solid var(--accent); }
   .task-card.break  { border-left: 3px solid var(--green); }
   .task-card.sleep  { border-left: 3px solid var(--text3); }
   .task-card.done-card { opacity: 0.45; }
   .task-card.done-card .task-title { text-decoration: line-through; color: var(--text3); }
-  .task-card.active-now {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 1px var(--accent), 0 0 24px var(--accent-glow);
-  }
-
-  .task-num {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--text3);
-    margin-top: 3px;
-    min-width: 22px;
-  }
-
+  .task-card.active-now { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), 0 0 24px var(--accent-glow); }
+  .task-num { font-family: var(--mono); font-size: 11px; color: var(--text3); margin-top: 3px; min-width: 22px; }
   .task-body { flex: 1; min-width: 0; }
-
-  .task-time {
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--accent2);
-    margin-bottom: 4px;
-    letter-spacing: 0.5px;
-  }
+  .task-time { font-family: var(--mono); font-size: 12px; color: var(--accent2); margin-bottom: 4px; }
   .task-card.break .task-time { color: var(--green); }
   .task-card.sleep .task-time { color: var(--text3); }
-
-  .task-title {
-    font-size: 15px;
-    font-weight: 500;
-    color: var(--text);
-    line-height: 1.4;
-  }
-
-  .task-type-badge {
-    display: inline-block;
-    font-size: 10px;
-    font-family: var(--mono);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    padding: 2px 8px;
-    border-radius: 99px;
-    margin-top: 6px;
-  }
+  .task-title { font-size: 15px; font-weight: 500; color: var(--text); line-height: 1.4; }
+  .task-type-badge { display: inline-block; font-size: 10px; font-family: var(--mono); text-transform: uppercase; letter-spacing: 1px; padding: 2px 8px; border-radius: 99px; margin-top: 6px; }
   .badge-study { background: var(--accent-glow); color: var(--accent2); border: 1px solid rgba(124,106,247,0.25); }
   .badge-break { background: var(--green-bg); color: var(--green); border: 1px solid rgba(34,211,160,0.2); }
   .badge-sleep { background: rgba(85,85,106,0.15); color: var(--text3); border: 1px solid var(--border); }
-
-  .task-actions {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 8px;
-    flex-shrink: 0;
-  }
-
-  /* Checkbox */
-  .task-checkbox {
-    width: 22px; height: 22px;
-    border-radius: 6px;
-    border: 2px solid var(--border);
-    background: transparent;
-    cursor: pointer;
-    appearance: none;
-    -webkit-appearance: none;
-    transition: all 0.2s;
-    position: relative;
-    flex-shrink: 0;
-  }
-  .task-checkbox:checked {
-    background: var(--green);
-    border-color: var(--green);
-  }
-  .task-checkbox:checked::after {
-    content: '';
-    position: absolute;
-    top: 3px; left: 6px;
-    width: 6px; height: 10px;
-    border: 2px solid #0d0d0f;
-    border-top: none; border-left: none;
-    transform: rotate(45deg);
-  }
-  .task-checkbox:hover { border-color: var(--green); }
-
-  .btn-edit, .btn-delete {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 14px;
-    padding: 4px 6px;
-    border-radius: 6px;
-    color: var(--text3);
-    transition: all 0.2s;
-    font-family: var(--sans);
-  }
+  .task-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0; }
+  .task-checkbox { width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--border); background: transparent; cursor: pointer; appearance: none; -webkit-appearance: none; transition: all 0.2s; position: relative; flex-shrink: 0; }
+  .task-checkbox:checked { background: var(--green); border-color: var(--green); }
+  .task-checkbox:checked::after { content: ''; position: absolute; top: 3px; left: 6px; width: 6px; height: 10px; border: 2px solid #0d0d0f; border-top: none; border-left: none; transform: rotate(45deg); }
+  .btn-edit, .btn-delete { background: none; border: none; cursor: pointer; font-size: 14px; padding: 4px 6px; border-radius: 6px; color: var(--text3); transition: all 0.2s; }
   .btn-edit:hover { color: var(--yellow); background: var(--yellow-bg); }
   .btn-delete:hover { color: var(--red); background: var(--red-bg); }
-
-  /* ── EDIT MODAL ── */
-  .modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.7);
-    z-index: 100;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    backdrop-filter: blur(4px);
-  }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); }
   .modal-overlay.open { display: flex; }
-  .modal {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 18px;
-    padding: 28px;
-    width: 100%;
-    max-width: 440px;
-    animation: fadeUp 0.3s ease both;
-  }
-  .modal h3 { font-size: 18px; font-weight: 600; margin-bottom: 20px; color: var(--text); }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 28px; width: 100%; max-width: 440px; animation: fadeUp 0.3s ease both; }
+  .modal h3 { font-size: 18px; font-weight: 600; margin-bottom: 20px; }
   .modal label { display: block; font-size: 12px; color: var(--text3); font-family: var(--mono); letter-spacing: 1px; margin-bottom: 6px; margin-top: 14px; }
-  .modal input {
-    width: 100%;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    color: var(--text);
-    font-family: var(--sans);
-    font-size: 14px;
-    padding: 10px 14px;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  .modal input:focus { border-color: var(--accent); }
-  .modal select {
-    width: 100%;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    color: var(--text);
-    font-family: var(--sans);
-    font-size: 14px;
-    padding: 10px 14px;
-    outline: none;
-    cursor: pointer;
-  }
   .modal-btns { display: flex; gap: 10px; margin-top: 22px; }
-  .btn-save {
-    flex: 1; padding: 12px; background: var(--accent); color: #fff;
-    border: none; border-radius: var(--radius-sm); cursor: pointer;
-    font-family: var(--sans); font-size: 14px; font-weight: 600;
-    transition: background 0.2s;
-  }
+  .btn-save { flex: 1; padding: 12px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius-sm); cursor: pointer; font-family: var(--sans); font-size: 14px; font-weight: 600; transition: background 0.2s; }
   .btn-save:hover { background: #6a59e0; }
-  .btn-cancel {
-    padding: 12px 20px; background: var(--surface2); color: var(--text2);
-    border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer;
-    font-family: var(--sans); font-size: 14px;
-    transition: all 0.2s;
-  }
+  .btn-cancel { padding: 12px 20px; background: var(--surface2); color: var(--text2); border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; font-family: var(--sans); font-size: 14px; transition: all 0.2s; }
   .btn-cancel:hover { border-color: var(--accent); }
-
-  /* ── NOTIFICATION TOAST ── */
-  #toast-container {
-    position: fixed;
-    top: 20px; right: 20px;
-    z-index: 999;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    max-width: 320px;
-  }
-  .toast {
-    background: var(--surface);
-    border: 1px solid var(--accent);
-    border-radius: var(--radius);
-    padding: 14px 18px;
-    box-shadow: 0 0 20px var(--accent-glow);
-    animation: slideIn 0.4s ease both;
-    position: relative;
-    overflow: hidden;
-  }
-  .toast::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, var(--accent), var(--accent2));
-  }
+  #toast-container { position: fixed; top: 20px; right: 20px; z-index: 999; display: flex; flex-direction: column; gap: 10px; max-width: 320px; }
+  .toast { background: var(--surface); border: 1px solid var(--accent); border-radius: var(--radius); padding: 14px 18px; box-shadow: 0 0 20px var(--accent-glow); animation: slideIn 0.4s ease both; position: relative; overflow: hidden; }
+  .toast.error-toast { border-color: var(--red); box-shadow: 0 0 20px rgba(248,113,113,0.15); }
+  .toast::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+  .toast.error-toast::before { background: var(--red); }
   .toast-icon { font-size: 20px; margin-bottom: 4px; }
   .toast-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
-  .toast-msg { font-size: 12px; color: var(--text2); line-height: 1.5; }
-
-  /* ── ACTIVE NOW BADGE ── */
-  .active-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 10px;
-    font-family: var(--mono);
-    color: var(--accent2);
-    background: var(--accent-glow);
-    border: 1px solid rgba(124,106,247,0.25);
-    border-radius: 99px;
-    padding: 2px 8px;
-    letter-spacing: 0.5px;
-  }
-  .active-dot {
-    width: 6px; height: 6px;
-    background: var(--accent);
-    border-radius: 50%;
-    animation: pulse 1.2s ease infinite;
-  }
-
-  /* ── CURRENT TIME ── */
-  .current-time-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 10px 16px;
-    margin-bottom: 20px;
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--text2);
-  }
+  .toast-msg { font-size: 12px; color: var(--text2); line-height: 1.5; word-break: break-word; }
+  .active-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-family: var(--mono); color: var(--accent2); background: var(--accent-glow); border: 1px solid rgba(124,106,247,0.25); border-radius: 99px; padding: 2px 8px; letter-spacing: 0.5px; }
+  .active-dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; animation: pulse 1.2s ease infinite; }
+  .current-time-bar { display: flex; align-items: center; justify-content: space-between; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 16px; margin-bottom: 20px; font-family: var(--mono); font-size: 12px; color: var(--text2); }
   .clock { font-size: 14px; color: var(--accent2); font-weight: 700; }
-
-  /* ── ANIMATIONS ── */
   @keyframes fadeDown { from { opacity:0; transform:translateY(-16px); } to { opacity:1; transform:none; } }
   @keyframes fadeUp   { from { opacity:0; transform:translateY(16px);  } to { opacity:1; transform:none; } }
   @keyframes spin     { to { transform: rotate(360deg); } }
   @keyframes slideIn  { from { opacity:0; transform:translateX(24px); } to { opacity:1; transform:none; } }
   @keyframes pulse    { 0%,100%{opacity:1} 50%{opacity:0.3} }
-  @keyframes slideOut { to { opacity:0; transform:translateX(30px); } }
+  @keyframes dots     { 0%{content:'.'} 33%{content:'..'} 66%{content:'...'} }
 </style>
 </head>
 <body>
-
 <div class="app">
 
   <!-- HEADER -->
@@ -545,40 +132,42 @@
     <p>Describe your day in plain words. The AI will read it and build your perfect schedule.</p>
   </div>
 
-  <!-- API KEY PAGE -->
-  <div id="page-apikey" style="width:100%;max-width:480px;animation:fadeUp 0.5s ease both;">
+  <!-- PAGE: API KEY -->
+  <div id="page-apikey" class="page">
     <div class="input-card">
       <div class="input-label">// step 1 — enter api key</div>
-      <p style="color:var(--text2);font-size:14px;line-height:1.6;margin-bottom:16px;">
-        This app uses Anthropic's Claude AI. Paste your API key below to get started. It's stored only in your browser session and never sent anywhere except Anthropic.
+      <p style="color:var(--text2);font-size:14px;line-height:1.6;margin-bottom:14px;">
+        This app is powered by Claude AI. Paste your Anthropic API key below to get started. It stays in your browser only.
       </p>
-      <input type="password" id="apiKeyInput" placeholder="sk-ant-api03-..." style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--mono);font-size:13px;padding:14px 16px;outline:none;transition:border-color 0.2s;letter-spacing:1px;" oninput="this.style.borderColor='var(--accent)'" />
+      <input type="password" id="apiKeyInput" placeholder="sk-ant-api03-..." />
       <div class="hint-box" style="margin-top:12px;">
-        <strong>Where to get a key?</strong> Go to <a href="https://console.anthropic.com/keys" target="_blank" style="color:var(--accent2);">console.anthropic.com/keys</a> → create a new key → copy &amp; paste it here.
+        <strong>Get a key:</strong> Go to
+        <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com/settings/keys</a>
+        → Create key → Copy &amp; paste here.
       </div>
-      <button class="btn-analyze" style="margin-top:16px;" onclick="submitApiKey()">✦ Continue to Planner</button>
+      <button class="btn" onclick="submitApiKey()">✦ Continue to Planner</button>
     </div>
   </div>
 
-  <!-- LANDING PAGE -->
-  <div id="page-landing" style="display:none;">
+  <!-- PAGE: DESCRIBE DAY -->
+  <div id="page-landing" class="page" style="display:none;">
     <div class="input-card">
       <div class="input-label">// describe your day</div>
-      <textarea id="userInput" placeholder="e.g. It's 9am. From 10am–12pm I'll study Math. Then lunch and rest till 2pm. From 2pm–5pm I'll study Physics. Break till 7pm. Then 7pm–9pm study Chemistry. Then eat, game till 11pm. Sleep at 11pm."></textarea>
+      <textarea id="userInput" placeholder="e.g. 9am–12pm study Math. Lunch 12–1pm. 1–4pm study Physics. Break till 6pm. 6–8pm study Chemistry. Sleep at 11pm."></textarea>
       <div class="hint-box">
-        <strong>Tip:</strong> Mention specific times (e.g. 10am–12pm), what you'll be doing, and any study subjects. The AI will detect everything automatically.
+        <strong>Tip:</strong> Mention times and subjects. The AI figures out the rest automatically.
       </div>
-      <button class="btn-analyze" id="analyzeBtn" onclick="analyzePlan()">✦ Analyze &amp; Build My Schedule</button>
+      <button class="btn" onclick="analyzePlan()">✦ Build My Schedule</button>
     </div>
   </div>
 
-  <!-- LOADING PAGE -->
-  <div id="page-loading" style="display:none; flex-direction:column; align-items:center; gap:20px; text-align:center;">
+  <!-- PAGE: LOADING -->
+  <div id="page-loading" style="display:none;flex-direction:column;align-items:center;gap:20px;text-align:center;">
     <div class="spinner"></div>
     <div class="loading-text">Analyzing your day<span class="loading-dots"></span></div>
   </div>
 
-  <!-- SCHEDULE PAGE -->
+  <!-- PAGE: SCHEDULE -->
   <div id="page-schedule">
     <div class="schedule-header">
       <div>
@@ -587,17 +176,12 @@
       </div>
       <button class="btn-reset" onclick="resetApp()">↩ Plan Again</button>
     </div>
-
     <div class="current-time-bar">
       <span>Current time</span>
       <span class="clock" id="clockDisplay">--:--</span>
     </div>
-
     <div class="progress-label" id="progressLabel">0 of 0 tasks completed</div>
-    <div class="progress-bar-wrap">
-      <div class="progress-bar-fill" id="progressBar"></div>
-    </div>
-
+    <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progressBar"></div></div>
     <div class="task-list" id="taskList"></div>
   </div>
 
@@ -607,12 +191,9 @@
 <div class="modal-overlay" id="editModal">
   <div class="modal">
     <h3>Edit Task</h3>
-    <label>START TIME</label>
-    <input type="time" id="editStart" />
-    <label>END TIME</label>
-    <input type="time" id="editEnd" />
-    <label>TASK NAME</label>
-    <input type="text" id="editTitle" placeholder="What will you do?" />
+    <label>START TIME</label><input type="time" id="editStart" />
+    <label>END TIME</label><input type="time" id="editEnd" />
+    <label>TASK NAME</label><input type="text" id="editTitle" placeholder="What will you do?" />
     <label>TYPE</label>
     <select id="editType">
       <option value="study">Study</option>
@@ -626,20 +207,15 @@
   </div>
 </div>
 
-<!-- TOAST CONTAINER -->
 <div id="toast-container"></div>
 
 <script>
-let tasks = [];
-let editingIndex = null;
-let notifTimers = [];
-let clockInterval = null;
-let userApiKey = '';
+let tasks = [], editingIndex = null, notifTimers = [], clockInterval = null, userApiKey = '';
 
 function submitApiKey() {
   const key = document.getElementById('apiKeyInput').value.trim();
-  if (!key.startsWith('sk-ant-')) {
-    showToast('⚠️', 'Invalid Key', 'Please enter a valid Anthropic API key (starts with sk-ant-).', false);
+  if (!key || !key.startsWith('sk-ant-')) {
+    showToast('⚠️', 'Invalid Key', 'Key must start with sk-ant-... Please check and try again.', true);
     return;
   }
   userApiKey = key;
@@ -647,40 +223,31 @@ function submitApiKey() {
   document.getElementById('page-landing').style.display = 'block';
 }
 
-// ── ANALYZE ──
 async function analyzePlan() {
   const input = document.getElementById('userInput').value.trim();
-  if (!input) { showToast('⚠️', 'Empty input', 'Please describe your day first.', false); return; }
+  if (!input) { showToast('⚠️', 'Empty input', 'Please describe your day first.', true); return; }
 
   document.getElementById('page-landing').style.display = 'none';
-  const loadingEl = document.getElementById('page-loading');
-  loadingEl.style.display = 'flex';
+  document.getElementById('page-loading').style.display = 'flex';
 
-  const prompt = `You are a smart day planner assistant. The user will describe their day in natural language. Your job is to extract all the tasks/sessions and return them as a JSON array.
+  const prompt = `You are a smart day planner. Parse the user's day description and return ONLY a raw JSON array (no markdown, no explanation).
+Each item: { "startTime": "HH:MM", "endTime": "HH:MM", "title": "short title", "type": "study|break|sleep" }
+- study = studying/learning any subject
+- sleep = sleep/overnight rest
+- break = everything else (eating, gaming, prayer, gym, free time)
+Use 24-hour time. Order chronologically. Include subject name in title e.g. "Study — Mathematics".
 
-Rules:
-- Parse all time blocks mentioned.
-- Classify each task as one of: "study", "break", or "sleep".
-- "study" = any studying, learning, coursework, subject mentioned.
-- "sleep" = sleep, nap, rest overnight.
-- "break" = everything else (eating, gaming, prayer, gym, free time, etc).
-- Return ONLY a raw JSON array, no explanation, no markdown backticks.
-- Each item must have: { "startTime": "HH:MM", "endTime": "HH:MM", "title": "short readable title", "type": "study|break|sleep" }
-- Use 24-hour time format (HH:MM).
-- If the user mentions a subject name, include it in the title e.g. "Study — Mathematics".
-- Order tasks chronologically.
-- If end time of one task is start of next, they should connect perfectly.
-- Be smart: infer missing gaps if obvious from context.
-
-User's input:
-"${input}"
-
-Return ONLY the JSON array.`;
+User input: "${input}"`;
 
   try {
     const res = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
-      headers: { "Content-Type": "application/json", "x-api-key": userApiKey, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": userApiKey,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
       body: JSON.stringify({
         model: "claude-sonnet-4-20250514",
         max_tokens: 1000,
@@ -688,175 +255,114 @@ Return ONLY the JSON array.`;
       })
     });
 
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      const errMsg = errData?.error?.message || `HTTP ${res.status}`;
+      throw new Error(errMsg);
+    }
+
     const data = await res.json();
-    const raw = data.content.map(b => b.text || '').join('').trim();
-    let cleaned = raw.replace(/```json|```/g, '').trim();
+    const raw = (data.content || []).map(b => b.text || '').join('').trim();
+    const cleaned = raw.replace(/```json|```/g, '').trim();
     tasks = JSON.parse(cleaned);
 
-    loadingEl.style.display = 'none';
+    document.getElementById('page-loading').style.display = 'none';
     renderSchedule();
     setupNotifications();
     startClock();
     highlightCurrentTask();
 
   } catch(err) {
-    loadingEl.style.display = 'none';
+    document.getElementById('page-loading').style.display = 'none';
     document.getElementById('page-landing').style.display = 'block';
-    showToast('❌', 'Error', 'Could not analyze your plan. Please try again.', false);
+    showToast('❌', 'Error', err.message || 'Could not analyze. Please try again.', true);
     console.error(err);
   }
 }
 
-// ── RENDER SCHEDULE ──
 function renderSchedule() {
-  const page = document.getElementById('page-schedule');
-  page.style.display = 'block';
-
-  const now = new Date();
-  document.getElementById('scheduleDate').textContent = now.toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
-
+  document.getElementById('page-schedule').style.display = 'block';
+  document.getElementById('scheduleDate').textContent = new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
   renderTasks();
 }
 
 function renderTasks() {
   const list = document.getElementById('taskList');
   list.innerHTML = '';
-
   tasks.forEach((task, i) => {
     const card = document.createElement('div');
-    card.className = `task-card ${task.type}`;
+    card.className = `task-card ${task.type}${task.done ? ' done-card' : ''}`;
     card.id = `task-${i}`;
-    if (task.done) card.classList.add('done-card');
-
-    const typeLabel = task.type === 'study' ? 'Study Session' : task.type === 'sleep' ? 'Sleep' : 'Break';
-    const badgeClass = `badge-${task.type}`;
-
-    const timeDisplay = formatTimeDisplay(task.startTime) + ' – ' + formatTimeDisplay(task.endTime);
-
+    const labels = { study: 'Study Session', sleep: 'Sleep', break: 'Break' };
     card.innerHTML = `
       <div class="task-num">${String(i+1).padStart(2,'0')}</div>
       <div class="task-body">
-        <div class="task-time">${timeDisplay}</div>
-        <div class="task-title">${escHtml(task.title)}</div>
-        <span class="task-type-badge ${badgeClass}">${typeLabel}</span>
+        <div class="task-time">${fmtTime(task.startTime)} – ${fmtTime(task.endTime)}</div>
+        <div class="task-title">${esc(task.title)}</div>
+        <span class="task-type-badge badge-${task.type}">${labels[task.type]||task.type}</span>
       </div>
       <div class="task-actions">
-        <input type="checkbox" class="task-checkbox" ${task.done ? 'checked' : ''} onchange="toggleDone(${i}, this)" aria-label="Mark done" />
-        <button class="btn-edit" onclick="openEdit(${i})" title="Edit">✎</button>
-        <button class="btn-delete" onclick="deleteTask(${i})" title="Delete">✕</button>
-      </div>
-    `;
-
+        <input type="checkbox" class="task-checkbox" ${task.done?'checked':''} onchange="toggleDone(${i},this)" />
+        <button class="btn-edit" onclick="openEdit(${i})">✎</button>
+        <button class="btn-delete" onclick="deleteTask(${i})">✕</button>
+      </div>`;
     list.appendChild(card);
   });
-
   updateProgress();
 }
 
-// ── TOGGLE DONE ──
 function toggleDone(i, cb) {
   tasks[i].done = cb.checked;
-  const card = document.getElementById(`task-${i}`);
-  if (tasks[i].done) card.classList.add('done-card');
-  else card.classList.remove('done-card');
+  document.getElementById(`task-${i}`).classList.toggle('done-card', tasks[i].done);
   updateProgress();
 }
 
 function updateProgress() {
-  const total = tasks.length;
-  const done = tasks.filter(t => t.done).length;
-  const pct = total ? Math.round((done/total)*100) : 0;
-  document.getElementById('progressBar').style.width = pct + '%';
+  const total = tasks.length, done = tasks.filter(t=>t.done).length;
+  document.getElementById('progressBar').style.width = (total ? Math.round(done/total*100) : 0) + '%';
   document.getElementById('progressLabel').textContent = `${done} of ${total} tasks completed`;
 }
 
-// ── HIGHLIGHT CURRENT TASK ──
 function highlightCurrentTask() {
-  const now = new Date();
-  const nowMin = now.getHours()*60 + now.getMinutes();
+  const now = new Date(), nowMin = now.getHours()*60 + now.getMinutes();
   tasks.forEach((task, i) => {
     const [sh,sm] = task.startTime.split(':').map(Number);
     const [eh,em] = task.endTime.split(':').map(Number);
-    const start = sh*60+sm, end = eh*60+em;
     const card = document.getElementById(`task-${i}`);
     if (!card) return;
-    const existing = card.querySelector('.active-badge');
-    if (existing) existing.remove();
-    if (nowMin >= start && nowMin < end) {
-      card.classList.add('active-now');
-      const badge = document.createElement('span');
-      badge.className = 'active-badge';
-      badge.innerHTML = '<span class="active-dot"></span> NOW';
-      card.querySelector('.task-body').appendChild(badge);
-    } else {
-      card.classList.remove('active-now');
+    const badge = card.querySelector('.active-badge');
+    if (badge) badge.remove();
+    const active = nowMin >= sh*60+sm && nowMin < eh*60+em;
+    card.classList.toggle('active-now', active);
+    if (active) {
+      const b = document.createElement('span');
+      b.className = 'active-badge';
+      b.innerHTML = '<span class="active-dot"></span> NOW';
+      card.querySelector('.task-body').appendChild(b);
     }
   });
 }
 
-// ── NOTIFICATIONS ──
 function setupNotifications() {
-  notifTimers.forEach(clearTimeout);
-  notifTimers = [];
-
-  const now = new Date();
-  const todayBase = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
+  notifTimers.forEach(clearTimeout); notifTimers = [];
+  const now = new Date(), base = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   tasks.forEach(task => {
     if (task.type !== 'study') return;
-
-    const [sh, sm] = task.startTime.split(':').map(Number);
-    const [eh, em] = task.endTime.split(':').map(Number);
-
-    const startMs = new Date(todayBase.getTime() + (sh*60+sm)*60000) - now;
-    const endMs   = new Date(todayBase.getTime() + (eh*60+em)*60000) - now;
-
-    if (startMs > 0) {
-      const t = setTimeout(() => {
-        showToast('📚', 'YOUR TIME STARTS NOW', `${task.title} — ${formatTimeDisplay(task.startTime)} to ${formatTimeDisplay(task.endTime)}`, true);
-        highlightCurrentTask();
-      }, startMs);
-      notifTimers.push(t);
-    }
-
-    if (endMs > 0) {
-      const t = setTimeout(() => {
-        showToast('⏰', 'YOUR TIME IS UP', `${task.title} session has ended.`, true);
-        highlightCurrentTask();
-      }, endMs);
-      notifTimers.push(t);
-    }
+    const [sh,sm] = task.startTime.split(':').map(Number);
+    const [eh,em] = task.endTime.split(':').map(Number);
+    const startMs = new Date(base.getTime()+(sh*60+sm)*60000) - now;
+    const endMs   = new Date(base.getTime()+(eh*60+em)*60000) - now;
+    if (startMs > 0) notifTimers.push(setTimeout(() => { showToast('📚','Study Time!',`${task.title} — ${fmtTime(task.startTime)} to ${fmtTime(task.endTime)}`,true); highlightCurrentTask(); }, startMs));
+    if (endMs > 0)   notifTimers.push(setTimeout(() => { showToast('⏰','Time Up!',`${task.title} session ended.`,true); highlightCurrentTask(); }, endMs));
   });
 }
 
-// ── TOAST ──
-function showToast(icon, title, msg, autoDismiss) {
-  const container = document.getElementById('toast-container');
-  const toast = document.createElement('div');
-  toast.className = 'toast';
-  toast.innerHTML = `<div class="toast-icon">${icon}</div><div class="toast-title">${title}</div><div class="toast-msg">${escHtml(msg)}</div>`;
-  container.appendChild(toast);
-  if (autoDismiss !== false) {
-    setTimeout(() => {
-      toast.style.animation = 'slideOut 0.4s ease both';
-      setTimeout(() => toast.remove(), 400);
-    }, 5000);
-  }
-}
-
-// ── CLOCK ──
 function startClock() {
   if (clockInterval) clearInterval(clockInterval);
-  function tick() {
-    const now = new Date();
-    document.getElementById('clockDisplay').textContent =
-      now.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:true });
-  }
-  tick();
-  clockInterval = setInterval(() => { tick(); highlightCurrentTask(); }, 1000);
+  const tick = () => { document.getElementById('clockDisplay').textContent = new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true}); };
+  tick(); clockInterval = setInterval(() => { tick(); highlightCurrentTask(); }, 1000);
 }
 
-// ── EDIT ──
 function openEdit(i) {
   editingIndex = i;
   const t = tasks[i];
@@ -866,57 +372,41 @@ function openEdit(i) {
   document.getElementById('editType').value = t.type;
   document.getElementById('editModal').classList.add('open');
 }
-function closeModal() {
-  document.getElementById('editModal').classList.remove('open');
-  editingIndex = null;
-}
+function closeModal() { document.getElementById('editModal').classList.remove('open'); editingIndex = null; }
 function saveEdit() {
   if (editingIndex === null) return;
-  tasks[editingIndex].startTime = document.getElementById('editStart').value;
-  tasks[editingIndex].endTime   = document.getElementById('editEnd').value;
-  tasks[editingIndex].title     = document.getElementById('editTitle').value;
-  tasks[editingIndex].type      = document.getElementById('editType').value;
-  closeModal();
-  renderTasks();
-  setupNotifications();
-  highlightCurrentTask();
+  tasks[editingIndex] = { ...tasks[editingIndex], startTime: document.getElementById('editStart').value, endTime: document.getElementById('editEnd').value, title: document.getElementById('editTitle').value, type: document.getElementById('editType').value };
+  closeModal(); renderTasks(); setupNotifications(); highlightCurrentTask();
 }
+function deleteTask(i) { tasks.splice(i,1); renderTasks(); setupNotifications(); }
 
-// ── DELETE ──
-function deleteTask(i) {
-  tasks.splice(i, 1);
-  renderTasks();
-  setupNotifications();
-}
-
-// ── RESET ──
 function resetApp() {
-  tasks = [];
-  notifTimers.forEach(clearTimeout);
-  notifTimers = [];
+  tasks = []; notifTimers.forEach(clearTimeout); notifTimers = [];
   if (clockInterval) clearInterval(clockInterval);
   document.getElementById('page-schedule').style.display = 'none';
-  document.getElementById('userInput').value = '';
   document.getElementById('page-landing').style.display = 'block';
   document.getElementById('taskList').innerHTML = '';
+  document.getElementById('userInput').value = '';
 }
 
-// ── HELPERS ──
-function formatTimeDisplay(t) {
+function showToast(icon, title, msg, autoDismiss) {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = 'toast' + (icon==='❌'||icon==='⚠️' ? ' error-toast' : '');
+  t.innerHTML = `<div class="toast-icon">${icon}</div><div class="toast-title">${title}</div><div class="toast-msg">${esc(msg)}</div>`;
+  c.appendChild(t);
+  if (autoDismiss) setTimeout(() => { t.style.opacity='0'; t.style.transition='opacity 0.4s'; setTimeout(()=>t.remove(),400); }, 5000);
+}
+
+function fmtTime(t) {
   if (!t) return '';
-  const [h, m] = t.split(':').map(Number);
-  const ampm = h >= 12 ? 'PM' : 'AM';
-  const hour = h % 12 || 12;
-  return `${hour}:${String(m).padStart(2,'0')} ${ampm}`;
+  const [h,m] = t.split(':').map(Number);
+  return `${h%12||12}:${String(m).padStart(2,'0')} ${h>=12?'PM':'AM'}`;
 }
-function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-// Close modal on overlay click
-document.getElementById('editModal').addEventListener('click', function(e) {
-  if (e.target === this) closeModal();
-});
+document.getElementById('editModal').addEventListener('click', e => { if (e.target===document.getElementById('editModal')) closeModal(); });
+document.getElementById('apiKeyInput').addEventListener('keydown', e => { if (e.key==='Enter') submitApiKey(); });
 </script>
 </body>
 </html>

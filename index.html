@@ -218,6 +218,13 @@ select option{background:var(--surface2)}
 <script>
 let tasks = [], editingIndex = null;
 
+function saveTasks() {
+  try { localStorage.setItem('dayplanner_tasks', JSON.stringify(tasks)); } catch(e) {}
+}
+function loadTasks() {
+  try { const d = localStorage.getItem('dayplanner_tasks'); if (d) tasks = JSON.parse(d); } catch(e) {}
+}
+
 // ── CLOCK ──
 function startClock() {
   const tick = () => {
@@ -242,6 +249,7 @@ function addTask() {
 
   tasks.push({ start, end, title, type, done: false });
   tasks.sort((a,b) => a.start.localeCompare(b.start));
+  saveTasks();
 
   // clear inputs
   document.getElementById('newStart').value = '';
@@ -286,6 +294,7 @@ function renderTasks() {
 function toggleDone(i, cb) {
   tasks[i].done = cb.checked;
   document.getElementById(`task-${i}`).classList.toggle('done-card', tasks[i].done);
+  saveTasks();
   updateProgress();
 }
 
@@ -335,11 +344,12 @@ function saveEdit() {
   if (start >= end) { showToast('⚠️ End time must be after start time.'); return; }
   tasks[editingIndex] = { ...tasks[editingIndex], start, end, title: document.getElementById('editTitle').value.trim(), type: document.getElementById('editType').value };
   tasks.sort((a,b) => a.start.localeCompare(b.start));
+  saveTasks();
   closeModal(); renderTasks();
 }
 
 // ── DELETE ──
-function deleteTask(i) { tasks.splice(i,1); renderTasks(); showToast('🗑️ Task removed.'); }
+function deleteTask(i) { tasks.splice(i,1); saveTasks(); renderTasks(); showToast('🗑️ Task removed.'); }
 
 // ── TOAST ──
 function showToast(msg) {
@@ -362,7 +372,9 @@ function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').re
 document.getElementById('editModal').addEventListener('click', e => { if(e.target===document.getElementById('editModal')) closeModal(); });
 document.getElementById('newTitle').addEventListener('keydown', e => { if(e.key==='Enter') addTask(); });
 
+loadTasks();
 startClock();
+renderTasks();
 </script>
 </body>
 </html>
